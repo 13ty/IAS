@@ -25,9 +25,9 @@ VISION.md
 ANALYSIS-REPORT*.md
 IAMSPARTA_BASE_PROMPT.md
 TO_ANALYZE.csv
-analyzer_check.py
-inventory_scan.py
-scout_search.py
+/analyzer_check.py
+/inventory_scan.py
+/scout_search.py
 
 # === OS files ===
 .DS_Store
