@@ -20,6 +20,7 @@ state/
 # === Internal working docs & ADRs ===
 ADRs/
 tests/
+PROJECT_DOCS/
 PLAN.md
 VISION.md
 ANALYSIS-REPORT*.md
