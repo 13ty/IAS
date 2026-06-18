@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "Notification": [],
+    "session_end": {
+      "trigger": "session-memory-manager.close",
+      "actions": [
+        "vault_curator:create-session",
+        "vault_curator:detect-decisions",
+        "lmstudio:analyze-transcript"
+      ]
+    }
+  }
+}

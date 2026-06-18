@@ -1,0 +1,9 @@
+{
+  "name": "ias",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "IAS Kwatermistrz — Inventory, Analyzer, Scout. Centralny system logistyczny środowiska developerskiego.",
+  "author": "13ty",
+  "license": "MIT",
+  "keywords": ["inventory", "analyzer", "scout", "tool-registry", "sbom", "tech-stack", "kwatermistrz"]
+}

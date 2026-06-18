@@ -40,5 +40,11 @@ Thumbs.db
 # === temp clones ===
 /tmp/ias-*/
 
+# === Build artifacts ===
+*.egg-info/
+.eggs/
+dist/
+build/
+
 # === uv ===
 uv.lock

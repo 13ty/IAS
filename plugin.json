@@ -1,0 +1,70 @@
+{
+  "name": "ias",
+  "version": "2.0.0",
+  "description": "IAS Kwatermistrz — Inventory, Analyzer, Scout. Centralny system logistyczny środowiska developerskiego.",
+  "author": "13ty",
+  "license": "MIT",
+  "type": "plugin",
+  "keywords": [
+    "inventory",
+    "analyzer",
+    "scout",
+    "tool-registry",
+    "sbom",
+    "tech-stack",
+    "kwatermistrz"
+  ],
+  "commands": {
+    "ias-scan": "commands/ias-scan.md",
+    "ias-inventory": "commands/ias-inventory.md",
+    "ias-analyze": "commands/ias-analyze.md",
+    "ias-scout": "commands/ias-scout.md",
+    "ias-audit": "commands/ias-audit.md",
+    "ias-heatmap": "commands/ias-heatmap.md",
+    "tool-use": "commands/tool-use.md"
+  },
+  "skills": {
+    "inventory": "skills/inventory/SKILL.md",
+    "analyzer": "skills/analyzer/SKILL.md",
+    "scout": "skills/scout/SKILL.md",
+    "auditor": "skills/auditor/SKILL.md",
+    "heatmap": "skills/heatmap/SKILL.md",
+    "iamsparta-graph": "skills/iamsparta-graph/SKILL.md",
+    "iamsparta-core": "skills/iamsparta-core/SKILL.md",
+    "iamsparta-comparison": "skills/iamsparta-comparison/SKILL.md",
+    "iamsparta-strategist": "skills/iamsparta-strategist/SKILL.md",
+    "iamsparta-feedback": "skills/iamsparta-feedback/SKILL.md"
+  },
+  "agents": {
+    "orchestrator": "agents/orchestrator.md"
+  },
+  "hooks": "hooks/hooks.json",
+  "backend": {
+    "planCS": "backend/.planCS",
+    "envy": "backend/.envy",
+    "settings": "backend/settings.yaml"
+  },
+  "mcpServers": {
+    "ias-kwatermistrz": {
+      "description": "Eksponuje IAS pipeline (inventory, analyze, scout, heatmap, registry) przez MCP dla dowolnego agenta",
+      "command": "python",
+      "args": ["scripts/mcp_server.py"],
+      "env": {},
+      "tools": [
+        "inventory_scan",
+        "analyze_repo",
+        "scout_gaps",
+        "heatmap_status",
+        "tool_registry_list",
+        "tool_details",
+        "scan_project"
+      ],
+      "resources": ["tools://registry", "pipeline://state"],
+      "prompts": ["audit_proposal"]
+    }
+  },
+  "dependencies": {
+    "cli": ["cdxgen", "grype", "gh", "scorecard"],
+    "python": ["pyyaml", "mcp"]
+  }
+}

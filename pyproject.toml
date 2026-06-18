@@ -1,0 +1,8 @@
+[project]
+name = "iamsparta"
+version = "0.1.0"
+description = "IAmSparta — Knowledge Graph, Semantic Layer, Multi-Agent Council"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["scripts"]

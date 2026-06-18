@@ -1,0 +1,31 @@
+_meta:
+  project: IAS
+  version: 1.0.0
+  description: "Operational scaffold map for Kwatermistrz plugin"
+
+directories:
+  scripts_dir: scripts
+  data_dir: data
+  state_dir: state
+  commands_dir: commands
+  skills_dir: skills
+  agents_dir: agents
+  backend_dir: backend
+  references_dir: references
+  hooks_dir: hooks
+
+stack:
+  python: "3.10"
+
+navigation:
+  orchestrator: python scripts/orchestrator.py --scan
+  inventory: python scripts/inventory_scan.py
+  analyzer: python scripts/analyzer_check.py
+  scout: python scripts/scout_search.py --gaps
+
+tags:
+  - ias
+  - kwatermistrz
+  - inventory
+  - pipeline
+  - tool-registry

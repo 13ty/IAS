@@ -1,0 +1,28 @@
+_meta:
+  project: IAS
+  version: 1.0.0
+  description: "Kwatermistrz pipeline configuration"
+
+system:
+  log_level: INFO
+  log_dir: logs
+  state_dir: state
+
+pipeline:
+  inventory_timeout: 120
+  analyzer_timeout: 120
+  scout_timeout: 60
+  max_scout_results: 10
+  skip_analyzer: false
+  skip_scout: false
+
+paths:
+  scripts: scripts
+  data: data
+  state: state
+
+features:
+  sbom_cdxgen: false
+  cve_grype: false
+  auto_discovery: true
+  semantic_search: true
