@@ -1,0 +1,44 @@
+# === Python ===
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ruff_cache/
+.pytest_cache/
+
+# === OMO / OpenCode internal state ===
+.omo/
+.sparta/
+
+# === Machine-specific config (paths, tokens, ports) ===
+backend/.envy
+
+# === User data (NOT for public repo) ===
+data/
+state/
+
+# === Internal working docs & ADRs ===
+ADRs/
+tests/
+PLAN.md
+VISION.md
+ANALYSIS-REPORT*.md
+IAMSPARTA_BASE_PROMPT.md
+TO_ANALYZE.csv
+analyzer_check.py
+inventory_scan.py
+scout_search.py
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+
+# === IDE ===
+.vscode/
+.idea/
+
+# === temp clones ===
+/tmp/ias-*/
+
+# === uv ===
+uv.lock
