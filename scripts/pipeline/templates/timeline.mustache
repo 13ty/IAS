@@ -1,0 +1,25 @@
+# Timeline: {{repo_name}}
+
+**Repo ID**: {{repo_id}}
+**Ostatnia aktualizacja**: {{last_updated}}
+
+---
+
+## Historia zdarzeń
+
+{{#events}}
+### {{timestamp}} — {{event_type}}
+{{#details}}
+- {{.}}
+{{/details}}
+**Wersja capability_map**: {{capability_map_version}}
+**Werdykt**: {{verdict}}
+**Agent**: {{agent}}
+---
+{{/events}}
+{{^events}}
+*Brak zdarzeń w timeline.*
+{{/events}}
+
+---
+*Timeline aktualizowany automatycznie przez pipeline.*

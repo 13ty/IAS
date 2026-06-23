@@ -16,6 +16,7 @@ examples:
   - "/tool-use --list"
   - "/tool-use --list --domain video"
   - "/tool-use --list --priority hot"
+  - "/tool-use R:\\Dev\\Tools\\processor --quick" # Rejestracja z wpisem do data/research/tools.csv
 ---
 
 # Command: /tool-use
@@ -94,6 +95,7 @@ Użyj narzędzia po raz pierwszy — automatycznie rejestruje je w systemie. Opc
 ## Integration
 
 - **ChromaDB**: Auto-upsert na rejestracji
+- **Research Database**: Dodaje wpis do `data/research/tools.csv` przy rejestracji nowego narzędzia
 - **IAS Analyzer**: Jeśli --analyze
 - **IAS Scout**: Jeśli --compare
 - **Obsidian**: Generuje quick_start/\*.md

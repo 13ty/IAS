@@ -25,6 +25,13 @@ trigger_words:
   - skanuj projekt
   - propozycja narzędzia
   - zarejestruj narzędzie
+  - research
+  - research database
+  - odkryte narzędzia
+  - katalog narzędzi
+  - tools.csv
+  - szukaj narzędzia
+  - przeszukaj research
 
 examples:
   - "Zeskanuj mój projekt i powiedz czego mi brakuje"
@@ -34,16 +41,20 @@ examples:
   - "Oceń propozycję narzędzia https://github.com/user/repo"
   - "Pokaż rejestr narzędzi w domenie video"
   - "Gdzie powinienem zainstalować to narzędzie?"
+  - "Przeszukaj research database w kategorii web-crawling"
+  - "Znajdź narzędzia z integracją LanceDB"
+  - "Pokaż wszystkie odkryte narzędzia MCP"
+  - "Dodaj nowe narzędzie do research database"
 
 negatives:
   - Do NOT use this for writing code (use coding skills)
   - Do NOT use this for git operations (use git skill)
   - Do NOT use this for deployment (use devops skill)
 
-version: 2.0.0
+version: 2.1.0
 author: 13ty
 created: 2026-06-06
-updated: 2026-06-07
+updated: 2026-06-22
 ---
 
 # IAS — Kwatermistrz (Smart Tech-Stack Oracle)
@@ -99,6 +110,7 @@ Plugin dostarcza 10 umiejętności:
 - **Backend (.planCS)** — mapa rusztowania (gdzie co ląduje)
 - **Backend (.envy)** — konfiguracja środowiska i portów
 - **ChromaDB** — semantic search dla narzędzi (opcjonalnie)
+- **Research Database** — katalog odkrytych narzędzi (`data/research/tools.csv`)
 
 ## Struktura
 
@@ -115,6 +127,7 @@ IAS/
 ├── agents/                  # Agent (orchestrator)
 ├── scripts/                 # Skrypty Python (6)
 ├── data/                    # Dane (tool_registry.json, proposals.csv)
+├── data/research/           # Baza odkrytych narzędzi (tools.csv)
 ├── references/              # Dokumentacja metodologii
 ├── state/                   # Stan pipeline'u
 ├── backend/                 # Backend (.planCS, .envy)

@@ -1,0 +1,61 @@
+# Investigation Log: {{repo_name}}
+
+**Repo ID**: {{repo_id}}
+**Data rozpoczęcia**: {{started_at}}
+**Analityk**: {{analyst}} (agent/human)
+
+---
+
+## Cel badania
+{{investigation_goal}}
+
+## Proces
+
+### Krok 1: Inicjalizacja
+- Klonowanie: {{clone_status}}
+- MCP index: {{mcp_index_status}}
+- Czas: {{init_duration}}s
+
+### Krok 2: Eksploracja struktury
+{{#structure_findings}}
+- {{finding}}
+{{/structure_findings}}
+
+### Krok 3: Analiza semantyczna (MCP)
+{{#semantic_findings}}
+- {{finding}}
+{{/semantic_findings}}
+
+### Krok 4: Mapowanie capability
+{{#capability_findings}}
+- {{finding}}
+{{/capability_findings}}
+
+## Odkrycia (Surprises)
+
+{{#surprises}}
+- **{{title}}**: {{description}}
+  - Wpływ na ocenę: {{impact}}
+{{/surprises}}
+
+## Decyzje agenta
+
+{{#agent_judgments}}
+### {{timestamp}} — {{agent}}
+**Uwaga**: {{judgment}}
+**Pewność**: {{confidence}}%
+**Działanie**: {{action}}
+{{/agent_judgments}}
+
+## Wnioski końcowe
+
+{{conclusions}}
+
+## Rekomendacje
+
+{{#recommendations}}
+- {{recommendation}}
+{{/recommendations}}
+
+---
+*Log generowany przez pipeline. Wpisy agenta dodawane ręcznie przez interfejs judgment.*

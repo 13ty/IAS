@@ -1,0 +1,41 @@
+# Mapa Capability: {{repo_name}}
+
+**Repo ID**: {{repo_id}}
+**Data analizy**: {{analysis_date}}
+**Wersja capability_map**: {{capability_map_version}}
+
+---
+
+## Wykryte Capability
+
+{{#capabilities}}
+### {{name}} ({{category}})
+- **Jakość**: {{quality}}/5
+- **Dowód**: {{evidence}}
+- **Jak odkryto**: {{discovery_method}}
+- **Pliki kluczowe**: {{#key_files}}{{.}}{{^last}}, {{/last}}{{/key_files}}
+- **Konfiguracja**: {{config_hints}}
+
+---
+{{/capabilities}}
+{{^capabilities}}
+*Brak capability — repo nie przeszło deep research lub nie wykryto żadnych.*
+{{/capabilities}}
+
+## Podsumowanie kategorii
+
+{{#categories}}
+### {{category}} ({{count}} capability)
+{{#items}}
+- **{{name}}** — {{quality}}/5
+{{/items}}
+{{/categories}}
+
+## Luki (co NIE wykryto)
+
+{{#missing_capabilities}}
+- {{name}} ({{category}}) — {{reason}}
+{{/missing_capabilities}}
+
+---
+*Wygenerowano z MCP memory: {{mcp_memory_path}}*

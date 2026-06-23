@@ -1,0 +1,52 @@
+# Karta Oceny Repozytorium: {{repo_name}}
+
+**Metadane**
+- **ID**: {{repo_id}}
+- **URL**: {{repo_url}}
+-uri}}
+- **Typ**: {{project_type}}
+- **Kategoria**: {{category}}
+- **Status**: {{status}}
+- **Data utworzenia**: {{created_at}}
+- **Data aktualizacji**: {{updated_at}}
+
+**Opis**
+{{description}}
+
+**Metryki GitHub**
+- Gwiazdki: {{stars}}
+- Forki: {{forks}}
+- Watcherzy: {{watchers}}
+- Otwarte issue: {{open_issues}}
+- Licencja: {{license}}
+- Język główny: {{language}}
+- Rozmiar: {{size_kb}} KB
+- Tematy: {{#topics}}{{.}}{{^last}}, {{/last}}{{/topics}}
+
+**Ocena (scoring)**
+{{#scoring}}
+| Wymiar | Waga | Wynik | Uzasadnienie |
+|--------|------|-------|--------------|
+{{#dimensions}}
+| {{name}} | {{weight}} | {{score}}/5 | {{rationale}} |
+{{/dimensions}}
+| **SUMA** | **1.0** | **{{total_score}}/5** | |
+{{/scoring}}
+
+**Werdykt**: {{verdict}}
+**Prawdopodobieństwo adopcji**: {{adoption_probability}}
+
+**Capability wykryte**
+{{#capabilities}}
+- **{{name}}** ({{category}}) — jakość: {{quality}}/5 — {{evidence}}
+{{/capabilities}}
+{{^capabilities}}
+*Brak wykrytych capability (wymaga deep research)*
+{{/capabilities}}
+
+**Serendipity**
+- Potencjał: {{serendipity_potential}}
+- Notatki: {{serendipity_notes}}
+
+---
+*Wygenerowano automatycznie przez IAS Pipeline v{{pipeline_version}} — {{timestamp}}*

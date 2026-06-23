@@ -57,9 +57,14 @@
         "heatmap_status",
         "tool_registry_list",
         "tool_details",
-        "scan_project"
+        "scan_project",
+        "research_search"
       ],
-      "resources": ["tools://registry", "pipeline://state"],
+      "resources": [
+        "tools://registry",
+        "pipeline://state",
+        "research://database"
+      ],
       "prompts": ["audit_proposal"]
     }
   },

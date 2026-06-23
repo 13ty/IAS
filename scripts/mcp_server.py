@@ -29,6 +29,7 @@ Security:
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import subprocess
@@ -46,6 +47,7 @@ PLUGIN_DIR = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = PLUGIN_DIR / "scripts"
 STATE_DIR = PLUGIN_DIR / "state"
 REGISTRY_PATH = PLUGIN_DIR / "data" / "tool_registry.json"
+RESEARCH_CSV_PATH = PLUGIN_DIR / "data" / "research" / "tools.csv"
 STATE_FILE = STATE_DIR / "tech_stack_oracle.json"
 
 TIMEOUT_INVENTORY = 180  # cdxgen/grype can be slow
@@ -168,6 +170,19 @@ def _load_pipeline_state() -> dict[str, Any]:
         "scout": None,
         "decisions": [],
     }
+
+
+def _load_research_csv() -> list[dict[str, str]]:
+    """Wczytaj data/research/tools.csv jako listę dictów."""
+    if not RESEARCH_CSV_PATH.exists():
+        return []
+
+    try:
+        with open(RESEARCH_CSV_PATH, encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            return [row for row in reader]
+    except (csv.Error, OSError) as e:
+        return []
 
 
 # ─── Tools ──────────────────────────────────────────────────────────────────────
@@ -524,6 +539,98 @@ def scan_project_tool(
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
+@mcp.tool(
+    name="research_search",
+    description="Przeszukuje bazę odkrytych narzędzi (research database). "
+    "Filtruje po kategorii, statusie, decyzji, słowie kluczowym, "
+    "integracji z LanceDB, lub priorytecie. Zwraca JSON z pasującymi wpisami.",
+)
+def research_search_tool(
+    category: str = "",
+    status: str = "",
+    decision: str = "",
+    keyword: str = "",
+    lancedb_integration: str = "",
+    priority: str = "",
+    limit: int = 50,
+) -> str:
+    """
+    Szuka narzędzi w research database data/research/tools.csv.
+
+    Args:
+        category: Filtruj po kategorii (np. "web-crawling", "rag-platform", "dashboard")
+        status: Filtruj po statusie ("pending", "audited", "installed", "rejected", "archived")
+        decision: Filtruj po decyzji ("TAKE", "WAIT", "BUILD", "SKIP")
+        keyword: Szukaj w nazwie, opisie i notatkach (case-insensitive)
+        lancedb_integration: Filtruj po typie integracji z LanceDB ("native", "adapter", "optional", "plugin")
+        priority: Filtruj po priorytecie ("hot", "warm", "cold")
+        limit: Maksymalna liczba wyników (domyślnie 50)
+
+    Returns:
+        JSON z listą pasujących narzędzi i metadanymi wyszukiwania.
+    """
+    tools = _load_research_csv()
+    if not tools:
+        return json.dumps(
+            {"error": "Research database jest pusta.", "count": 0, "tools": []},
+            ensure_ascii=False,
+        )
+
+    filtered = tools
+    filters_applied = []
+
+    if category:
+        cat_lower = category.lower()
+        filtered = [t for t in filtered if t.get("category", "").lower() == cat_lower]
+        filters_applied.append(f"category={category}")
+
+    if status:
+        st_lower = status.lower()
+        filtered = [t for t in filtered if t.get("status", "").lower() == st_lower]
+        filters_applied.append(f"status={status}")
+
+    if decision:
+        dec_upper = decision.upper()
+        filtered = [t for t in filtered if t.get("decision", "").upper() == dec_upper]
+        filters_applied.append(f"decision={decision}")
+
+    if lancedb_integration:
+        li_lower = lancedb_integration.lower()
+        filtered = [
+            t for t in filtered if t.get("lancedb_integration", "").lower() == li_lower
+        ]
+        filters_applied.append(f"lancedb_integration={lancedb_integration}")
+
+    if priority:
+        prio_lower = priority.lower()
+        filtered = [t for t in filtered if t.get("priority", "").lower() == prio_lower]
+        filters_applied.append(f"priority={priority}")
+
+    if keyword:
+        kw_lower = keyword.lower()
+        filtered = [
+            t
+            for t in filtered
+            if kw_lower in t.get("name", "").lower()
+            or kw_lower in t.get("description", "").lower()
+            or kw_lower in t.get("notes", "").lower()
+            or kw_lower in t.get("technologies", "").lower()
+        ]
+        filters_applied.append(f"keyword={keyword}")
+
+    result_tools = filtered[:limit]
+
+    result = {
+        "count": len(result_tools),
+        "total_matching": len(filtered),
+        "filters_applied": filters_applied,
+        "tools": result_tools,
+        "_mcp_timestamp": datetime.now().isoformat(),
+    }
+
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
 # ─── Resources ──────────────────────────────────────────────────────────────────
 
 
@@ -583,6 +690,54 @@ def get_pipeline_state() -> str:
         "recent_decisions": state.get("decisions", [])[-5:],
     }
     return json.dumps(summary, indent=2, ensure_ascii=False)
+
+
+@mcp.resource(
+    uri="research://database",
+    name="Research Database",
+    description="Pełna baza odkrytych narzędzi — wszystkie narzędzia "
+    "znalezione podczas researchu z pełną charakterystyką "
+    "(kategoria, integracja, ocena, decyzja).",
+    mime_type="application/json",
+)
+def get_research_database() -> str:
+    """Zwraca całą research database jako resource MCP."""
+    tools = _load_research_csv()
+    if not tools:
+        return json.dumps(
+            {"error": "Research database jest pusta."}, ensure_ascii=False
+        )
+
+    # Statystyki
+    categories = {}
+    statuses = {}
+    decisions = {}
+    for t in tools:
+        cat = t.get("category", "unknown")
+        categories[cat] = categories.get(cat, 0) + 1
+        st = t.get("status", "unknown")
+        statuses[st] = statuses.get(st, 0) + 1
+        dec = t.get("decision", "unknown")
+        decisions[dec] = decisions.get(dec, 0) + 1
+
+    result = {
+        "name": "Research Database",
+        "path": str(RESEARCH_CSV_PATH),
+        "count": len(tools),
+        "last_updated": datetime.now().isoformat(),
+        "statistics": {
+            "by_category": categories,
+            "by_status": statuses,
+            "by_decision": decisions,
+            "hot_count": sum(1 for t in tools if t.get("priority") == "hot"),
+            "warm_count": sum(1 for t in tools if t.get("priority") == "warm"),
+            "cold_count": sum(1 for t in tools if t.get("priority") == "cold"),
+            "recommended_take": sum(1 for t in tools if t.get("decision") == "TAKE"),
+        },
+        "tools": tools,
+        "_mcp_timestamp": datetime.now().isoformat(),
+    }
+    return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 # ─── Prompts ────────────────────────────────────────────────────────────────────

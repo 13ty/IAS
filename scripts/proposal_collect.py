@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """
-proposal_collect.py — Kwatermistrz: Zbieranie propozycji narzędzi.
+proposal_collect.py — Kwatermistrz v2: Zbieranie propozycji narzędzi.
 
-Dodaje URL-e do data/proposals.csv z automatyczną detekcją typu.
+Dodaje URL-e do state/repo_queue.json przez repo_utils.
 Użycie:
   python proposal_collect.py https://github.com/user/repo "notatki"
+  python proposal_collect.py https://github.com/user/repo --source scout --priority high
   python proposal_collect.py --list
   python proposal_collect.py --status pending
+  python proposal_collect.py --stats
 """
 
-import csv
-import os
+import argparse
 import sys
-from datetime import datetime, timezone
 
-PROPOSALS_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "data", "proposals.csv"
+from repo_utils import (
+    add_to_queue,
+    list_queue,
+    queue_stats,
+    normalize_github_url,
 )
-HEADERS = ["timestamp", "url", "source", "type", "notes", "status"]
+
+
+# --- Typowanie URL-i (heurystyka, przydatne przy wyświetlaniu) ---
 
 
 def detect_type(url: str) -> str:
@@ -36,88 +41,119 @@ def detect_type(url: str) -> str:
     return "other"
 
 
-def load_proposals() -> list[dict]:
-    """Wczytaj wszystkie propozycje z CSV."""
-    if not os.path.exists(PROPOSALS_PATH):
-        return []
-    with open(PROPOSALS_PATH, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        return [row for row in reader]
+# --- CLI ---
 
 
-def save_proposals(proposals: list[dict]) -> None:
-    """Zapisz propozycje do CSV."""
-    with open(PROPOSALS_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=HEADERS)
-        writer.writeheader()
-        for row in proposals:
-            writer.writerow(row)
+def cmd_add(
+    url: str, source: str, priority: str, gap_category: str | None, notes: str
+) -> None:
+    """Dodaj URL do kolejki przez repo_utils."""
+    result = add_to_queue(
+        url=url,
+        source=source,
+        priority=priority,
+        gap_category=gap_category,
+        notes=notes,
+    )
+    if result:
+        detected = detect_type(url)
+        print(f"   Typ (heurystyka): {detected}")
+        print(f"   ID: {result['id']}")
 
 
-def add_proposal(url: str, notes: str = "", source: str = "user") -> dict:
-    """Dodaj pojedynczą propozycję."""
-    proposals = load_proposals()
-
-    # Sprawdź duplikaty
-    existing_urls = {p["url"].strip().rstrip("/") for p in proposals}
-    clean_url = url.strip().rstrip("/")
-    if clean_url in existing_urls:
-        print(f"⚠️  URL już istnieje w proposals.csv: {url}")
-        return {"status": "duplicate"}
-
-    proposal = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "url": clean_url,
-        "source": source,
-        "type": detect_type(url),
-        "notes": notes,
-        "status": "pending",
-    }
-    proposals.append(proposal)
-    save_proposals(proposals)
-    print(f"✅ Dodano propozycję: {url} ({proposal['type']})")
-    return proposal
-
-
-def list_proposals(status: str | None = None) -> None:
-    """Wyświetl wszystkie propozycje, opcjonalnie filtrując po statusie."""
-    proposals = load_proposals()
-    if not proposals:
-        print("📭 Brak propozycji w proposals.csv")
+def cmd_list(status: str | None) -> None:
+    """Wyświetl wszystkie wpisy w kolejce."""
+    items = list_queue(status=status)
+    if not items:
+        print("📭 Kolejka pusta.")
         return
 
-    filtered = [p for p in proposals if status is None or p["status"] == status]
-
-    print(f"\n📋 Propozycje ({len(filtered)}/{len(proposals)}):\n")
-    print(f"{'STATUS':<12} {'TYP':<18} {'URL'}")
-    print("-" * 80)
-    for p in filtered:
-        print(f"{p['status']:<12} {p['type']:<18} {p['url']}")
+    total_all = len(list_queue())
+    label = f" (filtr: {status})" if status else ""
+    print(f"\n📋 Kolejka repozytoriów ({len(items)}/{total_all}){label}:\n")
+    print(f"{'STATUS':<12} {'PRIO':<8} {'TYP':<18} {'URL'}")
+    print("-" * 90)
+    for item in items:
+        detected = detect_type(item["url"])
+        print(
+            f"{item['status']:<12} {item['priority']:<8} {detected:<18} {item['url']}"
+        )
     print()
 
-    # Podsumowanie
-    statuses = {}
-    for p in proposals:
-        statuses[p["status"]] = statuses.get(p["status"], 0) + 1
+    # Podsumowanie per status
+    all_items = list_queue()
+    statuses: dict[str, int] = {}
+    for item in all_items:
+        s = item["status"]
+        statuses[s] = statuses.get(s, 0) + 1
     print("Podsumowanie:", ", ".join(f"{k}: {v}" for k, v in statuses.items()))
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Użycie:")
-        print("  python proposal_collect.py <url> [notatki]     — Dodaj propozycję")
-        print("  python proposal_collect.py --list              — Lista wszystkich")
-        print("  python proposal_collect.py --status pending    — Filtruj po statusie")
+def cmd_stats() -> None:
+    """Wyświetl statystyki kolejki."""
+    stats = queue_stats()
+    print(f"\n📊 Statystyki kolejki:\n")
+    print(f"  Razem:     {stats.get('total', 0)}")
+    for key in sorted(stats.keys()):
+        if key == "total":
+            continue
+        print(f"  {key.capitalize():<10} {stats[key]}")
+    print()
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Kwatermistrz — dodawanie propozycji narzędzi do kolejki.",
+    )
+    parser.add_argument("url", nargs="?", help="URL repozytorium GitHub")
+    parser.add_argument("notes", nargs="?", default="", help="Opcjonalne notatki")
+    parser.add_argument("--list", action="store_true", help="Wyświetl wszystkie wpisy")
+    parser.add_argument(
+        "--status",
+        default=None,
+        help="Filtruj po statusie (pending, in_progress, done)",
+    )
+    parser.add_argument("--stats", action="store_true", help="Statystyki kolejki")
+    parser.add_argument(
+        "--source", default="user", help="Źródło propozycji (domyślnie: user)"
+    )
+    parser.add_argument(
+        "--priority",
+        default="medium",
+        choices=["low", "medium", "high", "critical"],
+        help="Priorytet (domyślnie: medium)",
+    )
+    parser.add_argument(
+        "--gap-category", default=None, help="Kategoria luki technologicznej"
+    )
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    # Flagi informacyjne
+    if args.stats:
+        cmd_stats()
+        return
+
+    if args.list or args.status:
+        cmd_list(status=args.status)
+        return
+
+    # Dodawanie URL
+    if not args.url:
+        parser.print_help()
         sys.exit(1)
 
-    if sys.argv[1] == "--list":
-        list_proposals()
-    elif sys.argv[1] == "--status" and len(sys.argv) > 2:
-        list_proposals(sys.argv[2])
-    else:
-        url = sys.argv[1]
-        notes = sys.argv[2] if len(sys.argv) > 2 else ""
-        add_proposal(url, notes)
+    cmd_add(
+        url=args.url,
+        source=args.source,
+        priority=args.priority,
+        gap_category=args.gap_category,
+        notes=args.notes,
+    )
 
 
 if __name__ == "__main__":

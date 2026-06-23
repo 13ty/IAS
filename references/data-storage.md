@@ -275,6 +275,21 @@ orchestrator.py ──→ state/tech_stack_oracle.json (transient)
 
 ---
 
+## Future: ArcticDB Query Layer
+
+**Decyzja**: Rozważone, odłożone (ADR-001 w roadmap-repo-evaluation-v2.md).
+
+Gdyby JSON-y przestały wystarczać (skala > 100 repo, potrzeba wersjonowania, zaawansowanych query), ArcticDB jest naturalnym następcą:
+
+- JSON-native ingest — `arcticdb库.Arctic().get_library("repo_data").write("repos", dataframe)`
+- Versioning — każda zmiana to nowy snapshot, `list_versions()` daje historię zmian
+- Backup = snapshots + skopiowanie pliku ArcticDB
+- Query przez DataFrame (filter, join, group by)
+
+Na razie nie implementujemy. Zapisane w rejestrze narzędzi na przyszłość.
+
+---
+
 ## Quick Reference: "Where Do I Find X?"
 
 | Data                  | File                           | Format   |

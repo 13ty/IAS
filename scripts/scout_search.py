@@ -7,6 +7,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from repo_utils import add_to_queue, is_url_in_queue, load_taxonomy
+
 GAP_QUERIES = {
     "testing": ["testing framework", "test runner", "testing library", "unit testing"],
     "security": [
@@ -99,6 +101,18 @@ GAP_QUERIES = {
     ],
 }
 
+_taxonomy = load_taxonomy()
+if _taxonomy:
+    for _domain in _taxonomy.get("domains", []):
+        for _cap in _domain.get("capabilities", []):
+            _cid = _cap["id"]
+            if _cid not in GAP_QUERIES:
+                GAP_QUERIES[_cid] = [_cap["name"].lower()]
+            else:
+                _name_lower = _cap["name"].lower()
+                if _name_lower not in GAP_QUERIES[_cid]:
+                    GAP_QUERIES[_cid].append(_name_lower)
+
 
 def parse_args():
     p = argparse.ArgumentParser(
@@ -108,6 +122,11 @@ def parse_args():
     p.add_argument("--max-results", type=int, default=10, help="Max results to return")
     p.add_argument("--json", action="store_true", help="Output JSON to stdout")
     p.add_argument("--output", help="Write JSON to file")
+    p.add_argument(
+        "--to-queue",
+        action="store_true",
+        help="Also add results to repo_queue.json",
+    )
     return p.parse_args()
 
 
@@ -323,6 +342,17 @@ def main():
     ]
     covered = [g for g in gaps if g in gap_covered]
     missing = [g for g in gaps if g not in gap_covered]
+
+    if args.to_queue:
+        added = 0
+        for r in results:
+            gap_cat = r["gap_coverage"][0] if r["gap_coverage"] else None
+            entry = add_to_queue(
+                r["url"], source="scout", gap_category=gap_cat, priority="medium"
+            )
+            if entry is not None:
+                added += 1
+        print(f"📥 Dodano {added} wyników do kolejki (source=scout)")
 
     out = {
         "results": results,
